@@ -1362,7 +1362,7 @@
                 try {
                     this.updateCloudStatus('connecting', 'Verbinde...');
                     
-                    const response = await fetch(`${API_BASE_URL}/data`);
+                   const response = await fetch(`${API_BASE_URL}/checkin/${participantId}`, {
                     
                     if (response.ok) {
                         this.isConnected = true;
