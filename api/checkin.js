@@ -1,4 +1,4 @@
-let participants = [];
+const storage = require('./storage');
 
 module.exports = (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,20 +11,29 @@ module.exports = (req, res) => {
 
   if (req.method === 'POST') {
     const { id, status, user } = req.body;
-    const participantIndex = participants.findIndex(p => p.id === parseInt(id));
     
-    if (participantIndex !== -1) {
-      participants[participantIndex].status = status;
-      const timestamp = new Date().toLocaleString('de-DE');
-      
-      switch(status) {
-        case 'present': participants[participantIndex].checkInTime = timestamp; break;
-        case 'absent': participants[participantIndex].checkOutTime = timestamp; break;
-        case 'ausflug': participants[participantIndex].ausflugsTime = timestamp; break;
-        case 'krank': participants[participantIndex].krankTime = timestamp; break;
-      }
-      
-      return res.status(200).json({ success: true });
+    const timestamp = new Date().toLocaleString('de-DE');
+    const updates = { status };
+    
+    // Clear all timestamps
+    updates.checkInTime = null;
+    updates.checkOutTime = null;
+    updates.ausflugsTime = null;
+    updates.krankTime = null;
+    
+    // Set appropriate timestamp
+    switch(status) {
+      case 'present': updates.checkInTime = timestamp; break;
+      case 'absent': updates.checkOutTime = timestamp; break;
+      case 'ausflug': updates.ausflugsTime = timestamp; break;
+      case 'krank': updates.krankTime = timestamp; break;
+    }
+    
+    const updated = storage.update(id, updates);
+    
+    if (updated) {
+      console.log(`Status update by ${user}: Participant ${id} -> ${status}`);
+      return res.status(200).json({ success: true, participant: updated });
     }
     
     return res.status(404).json({ success: false, message: 'Teilnehmer nicht gefunden' });
