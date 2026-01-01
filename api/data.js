@@ -1,4 +1,8 @@
-const storage = require('./storage');
+// Initialize global storage once
+if (!global.appParticipants) {
+  global.appParticipants = [];
+  console.log('Global storage initialized');
+}
 
 module.exports = (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,18 +14,18 @@ module.exports = (req, res) => {
   }
 
   if (req.method === 'GET') {
-    const participants = storage.get();
-    console.log('GET /api/data - returning:', participants.length, 'participants');
-    return res.status(200).json(participants);
+    console.log('GET /api/data - returning:', global.appParticipants.length, 'participants');
+    return res.status(200).json(global.appParticipants);
   }
 
   if (req.method === 'POST') {
     const { participants: newParticipants } = req.body;
-    if (newParticipants) {
-      storage.set(newParticipants);
+    if (newParticipants && Array.isArray(newParticipants)) {
+      global.appParticipants = newParticipants;
       console.log('POST /api/data - stored:', newParticipants.length, 'participants');
+      return res.status(200).json({ success: true, count: global.appParticipants.length });
     }
-    return res.status(200).json({ success: true, count: storage.get().length });
+    return res.status(400).json({ success: false, message: 'Invalid data' });
   }
 
   return res.status(405).json({ message: 'Method not allowed' });
