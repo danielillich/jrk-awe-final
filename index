@@ -2226,13 +2226,14 @@
                 
                 // Try to sync with cloud in background
                 try {
-                    const response = await fetch(`${API_BASE_URL}/checkin/${participantId}`, {
+                    const response = await fetch(`${API_BASE_URL}/checkin`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            status: newStatus,
-                            user: currentUser
-                        })
+    id: participantId,
+    status: newStatus,
+    user: currentUser
+})
                     });
 
                     if (!response.ok) {
