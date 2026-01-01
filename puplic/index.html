@@ -1,0 +1,2830 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JRK Check-in App - Cloud Edition</title>
+    <style>
+        /* JRK Corporate Colors */
+        :root {
+            --jrk-petrol: rgb(50, 180, 190);
+            --jrk-red: rgb(240, 50, 55);
+            --jrk-yellow: rgb(255, 235, 105);
+            --jrk-blue: rgb(85, 70, 150);
+            --jrk-green: rgb(190, 225, 130);
+            --jrk-dark: #2c3e50;
+            --jrk-light: #ecf0f1;
+            --jrk-white: #ffffff;
+            --jrk-gray: #95a5a6;
+            --jrk-success: #27ae60;
+            --jrk-warning: #f39c12;
+            --jrk-danger: #e74c3c;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--jrk-petrol), var(--jrk-blue));
+            min-height: 100vh;
+            color: var(--jrk-dark);
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        /* Login Screen */
+        .login-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .login-card {
+            background: var(--jrk-white);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        .login-logo {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        .login-title {
+            color: var(--jrk-petrol);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .login-subtitle {
+            color: var(--jrk-gray);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .login-input {
+            padding: 15px;
+            border: 2px solid var(--jrk-light);
+            border-radius: 10px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        .login-input:focus {
+            outline: none;
+            border-color: var(--jrk-petrol);
+            box-shadow: 0 0 0 3px rgba(50, 180, 190, 0.1);
+        }
+        .login-button {
+            background: var(--jrk-petrol);
+            color: var(--jrk-white);
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .login-button:hover {
+            background: var(--jrk-blue);
+            transform: translateY(-2px);
+        }
+        .login-error {
+            background: var(--jrk-red);
+            color: var(--jrk-white);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+        .cloud-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--jrk-white);
+            padding: 10px 15px;
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
+        .cloud-status.connected {
+            border-left: 4px solid var(--jrk-green);
+        }
+        .cloud-status.connecting {
+            border-left: 4px solid var(--jrk-yellow);
+        }
+        .cloud-status.offline {
+            border-left: 4px solid var(--jrk-red);
+        }
+        .user-info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--jrk-white);
+            padding: 10px 15px;
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
+        .logout-btn {
+            background: var(--jrk-red);
+            color: var(--jrk-white);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+        /* Header */
+        header {
+            background: var(--jrk-white);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        header h1 {
+            color: var(--jrk-petrol);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .admin-section {
+            background: rgba(255, 235, 105, 0.2);
+            border: 2px solid var(--jrk-yellow);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .admin-title {
+            color: var(--jrk-dark);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        /* Upload Section */
+        .upload-section {
+            margin-top: 10px;
+        }
+        .upload-area {
+            border: 2px dashed var(--jrk-petrol);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(50, 180, 190, 0.05);
+        }
+        .upload-area:hover {
+            border-color: var(--jrk-blue);
+            background: rgba(85, 70, 150, 0.1);
+            transform: translateY(-2px);
+        }
+        .upload-area.dragover {
+            border-color: var(--jrk-green);
+            background: rgba(190, 225, 130, 0.2);
+        }
+        .upload-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .upload-content p {
+            font-size: 1rem;
+            color: var(--jrk-dark);
+            font-weight: 500;
+        }
+        /* Saved Data Notification */
+        .saved-data-notification {
+            background: linear-gradient(135deg, var(--jrk-green), var(--jrk-yellow));
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .notification-content {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: var(--jrk-dark);
+        }
+        .notification-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+        .notification-text {
+            flex: 1;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--jrk-dark);
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+        .notification-close:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        /* Dashboard */
+        .dashboard {
+            margin-bottom: 30px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .stat-card {
+            background: var(--jrk-white);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card.total {
+            border-left: 5px solid var(--jrk-petrol);
+        }
+        .stat-card.present {
+            border-left: 5px solid var(--jrk-green);
+        }
+        .stat-card.absent {
+            border-left: 5px solid var(--jrk-red);
+        }
+        .stat-card.catering {
+            border-left: 5px solid var(--jrk-yellow);
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--jrk-dark);
+            margin-bottom: 10px;
+        }
+        .stat-label {
+            font-size: 1.1rem;
+            color: var(--jrk-gray);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .catering-breakdown {
+            text-align: left;
+        }
+        .catering-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--jrk-light);
+        }
+        .catering-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .catering-label {
+            font-weight: 600;
+            color: var(--jrk-dark);
+        }
+        .catering-count {
+            font-weight: 700;
+            color: var(--jrk-petrol);
+        }
+        /* Controls */
+        .controls {
+            background: var(--jrk-white);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        /* Search Container */
+        .search-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .search-input {
+            padding: 12px 15px;
+            border: 2px solid var(--jrk-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--jrk-white);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--jrk-petrol);
+            box-shadow: 0 0 0 3px rgba(50, 180, 190, 0.1);
+        }
+        /* Filter Container */
+        .filter-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+        }
+        .filter-group label {
+            font-weight: 600;
+            color: var(--jrk-dark);
+            min-width: 100px;
+        }
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--jrk-petrol);
+            background: var(--jrk-white);
+            color: var(--jrk-petrol);
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        .filter-btn:hover {
+            background: var(--jrk-petrol);
+            color: var(--jrk-white);
+            transform: translateY(-2px);
+        }
+        .filter-btn.active {
+            background: var(--jrk-petrol);
+            color: var(--jrk-white);
+            box-shadow: 0 4px 15px rgba(50, 180, 190, 0.3);
+        }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .reset-btn, .export-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        .reset-btn {
+            background: var(--jrk-red);
+            color: var(--jrk-white);
+        }
+        .reset-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+        .export-btn {
+            background: var(--jrk-green);
+            color: var(--jrk-white);
+        }
+        .export-btn:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+        /* Participants */
+        .participants {
+            background: var(--jrk-white);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .participants-header h2 {
+            color: var(--jrk-dark);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        .participants-list {
+            display: grid;
+            gap: 15px;
+        }
+        .participant-card {
+            background: var(--jrk-light);
+            border-radius: 10px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s ease;
+            border-left: 5px solid var(--jrk-gray);
+        }
+        .participant-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        .participant-card.present {
+            border-left-color: var(--jrk-green);
+            background: rgba(190, 225, 130, 0.1);
+        }
+        .participant-card.absent {
+            border-left-color: var(--jrk-red);
+        }
+        .participant-card.ausflug {
+            border-left-color: var(--jrk-blue);
+            background: rgba(85, 70, 150, 0.1);
+        }
+        .participant-card.krank {
+            border-left-color: var(--jrk-warning);
+            background: rgba(243, 156, 18, 0.1);
+        }
+        .participant-info {
+            cursor: pointer;
+        }
+        .participant-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--jrk-dark);
+            margin-bottom: 5px;
+        }
+        .participant-details {
+            color: var(--jrk-gray);
+            font-size: 0.95rem;
+        }
+        /* Medical info indicator */
+        .medical-indicator {
+            display: inline-block;
+            background: var(--jrk-red);
+            color: var(--jrk-white);
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        /* Workshop change indicator */
+        .workshop-change-indicator {
+            display: inline-block;
+            background: var(--jrk-warning);
+            color: var(--jrk-white);
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        /* Room change indicator */
+        .room-change-indicator {
+            display: inline-block;
+            background: var(--jrk-petrol);
+            color: var(--jrk-white);
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        /* Comments indicator */
+        .comments-indicator {
+            display: inline-block;
+            background: var(--jrk-blue);
+            color: var(--jrk-white);
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .participant-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-badge.present {
+            background: var(--jrk-green);
+            color: var(--jrk-white);
+        }
+        .status-badge.absent {
+            background: var(--jrk-red);
+            color: var(--jrk-white);
+        }
+        .status-badge.ausflug {
+            background: var(--jrk-blue);
+            color: var(--jrk-white);
+        }
+        .status-badge.krank {
+            background: var(--jrk-warning);
+            color: var(--jrk-white);
+        }
+        .checkin-time {
+            font-size: 0.8rem;
+            color: var(--jrk-gray);
+            text-align: center;
+        }
+        .participant-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .checkin-btn, .checkout-btn, .ausflug-btn, .krank-btn, .edit-room-btn, .edit-workshop-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            margin: 2px;
+        }
+        /* ENHANCED: Larger and more prominent checkin button */
+        .checkin-btn {
+            background: var(--jrk-success);
+            color: var(--jrk-white);
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border: 2px solid var(--jrk-success);
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .checkin-btn:hover {
+            background: #1e8449;
+            border-color: #1e8449;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+        }
+        .checkout-btn {
+            background: var(--jrk-red);
+            color: var(--jrk-white);
+        }
+        .checkout-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+        .ausflug-btn {
+            background: var(--jrk-blue);
+            color: var(--jrk-white);
+        }
+        .ausflug-btn:hover {
+            background: #5a4a96;
+            transform: translateY(-2px);
+        }
+        .krank-btn {
+            background: var(--jrk-warning);
+            color: var(--jrk-white);
+        }
+        .krank-btn:hover {
+            background: #d68910;
+            transform: translateY(-2px);
+        }
+        .edit-room-btn {
+            background: var(--jrk-petrol);
+            color: var(--jrk-white);
+        }
+        .edit-room-btn:hover {
+            background: #2e9ca8;
+            transform: translateY(-2px);
+        }
+        /* Workshop edit button */
+        .edit-workshop-btn {
+            background: var(--jrk-yellow);
+            color: var(--jrk-dark);
+        }
+        .edit-workshop-btn:hover {
+            background: #f1c40f;
+            transform: translateY(-2px);
+        }
+        /* Modal - FIXED: Proper scrolling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: var(--jrk-white);
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .modal-header {
+            background: linear-gradient(135deg, var(--jrk-petrol), var(--jrk-blue));
+            color: var(--jrk-white);
+            padding: 20px 25px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        /* Ortsgruppe badge in modal header */
+        .ortsgruppe-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--jrk-white);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        .modal-close {
+            color: var(--jrk-white);
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+        .modal-close:hover {
+            opacity: 0.7;
+        }
+        .modal-body {
+            padding: 25px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .modal-detail-group {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--jrk-light);
+        }
+        .modal-detail-group:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .modal-detail-label {
+            font-weight: 600;
+            color: var(--jrk-dark);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+        .modal-detail-value {
+            color: var(--jrk-gray);
+            font-size: 1.1rem;
+        }
+        /* Status with check-in time inline */
+        .status-with-time {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .status-with-time .checkin-time {
+            font-size: 0.9rem;
+            color: var(--jrk-gray);
+            font-style: italic;
+        }
+        /* Medical info form styles - UPDATED */
+        .medical-form-group {
+            background: rgba(240, 50, 55, 0.1);
+            border: 2px solid var(--jrk-red);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .medical-form-group.inactive {
+            background: rgba(0, 0, 0, 0.02);
+            border: 1px solid var(--jrk-light);
+        }
+        .medical-checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .medical-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .medical-checkbox-label {
+            font-weight: 600;
+            color: var(--jrk-red);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .medical-checkbox-label.inactive {
+            color: var(--jrk-gray);
+        }
+        .medical-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 10px;
+            border: 2px solid var(--jrk-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+            display: none;
+        }
+        .medical-textarea.active {
+            display: block;
+        }
+        .medical-textarea:focus {
+            outline: none;
+            border-color: var(--jrk-red);
+        }
+        .medical-textarea:disabled {
+            background: var(--jrk-light);
+            color: var(--jrk-gray);
+        }
+        .medical-save-btn {
+            background: var(--jrk-red);
+            color: var(--jrk-white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            display: none;
+        }
+        .medical-save-btn.active {
+            display: inline-block;
+        }
+        .medical-save-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+        /* Comments form styles - UPDATED to match medical info pattern */
+        .comments-form-group {
+            background: rgba(85, 70, 150, 0.1);
+            border: 2px solid var(--jrk-blue);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .comments-form-group.inactive {
+            background: rgba(0, 0, 0, 0.02);
+            border: 1px solid var(--jrk-light);
+        }
+        .comments-checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .comments-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .comments-checkbox-label {
+            font-weight: 600;
+            color: var(--jrk-blue);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .comments-checkbox-label.inactive {
+            color: var(--jrk-gray);
+        }
+        .comments-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 10px;
+            border: 2px solid var(--jrk-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+            display: none;
+        }
+        .comments-textarea.active {
+            display: block;
+        }
+        .comments-textarea:focus {
+            outline: none;
+            border-color: var(--jrk-blue);
+        }
+        .comments-save-btn {
+            background: var(--jrk-blue);
+            color: var(--jrk-white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            display: none;
+        }
+        .comments-save-btn.active {
+            display: inline-block;
+        }
+        .comments-save-btn:hover {
+            background: #5a4a96;
+            transform: translateY(-2px);
+        }
+        /* Workshop form styles */
+        .workshop-form-group {
+            background: rgba(255, 235, 105, 0.1);
+            border: 2px solid var(--jrk-yellow);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .workshop-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--jrk-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            margin-bottom: 10px;
+            transition: border-color 0.3s ease;
+        }
+        .workshop-input:focus {
+            outline: none;
+            border-color: var(--jrk-yellow);
+        }
+        .workshop-save-btn {
+            background: var(--jrk-yellow);
+            color: var(--jrk-dark);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        .workshop-save-btn:hover {
+            background: #f1c40f;
+            transform: translateY(-2px);
+        }
+        .workshop-list {
+            list-style: none;
+            padding: 0;
+        }
+        .workshop-item {
+            background: rgba(50, 180, 190, 0.1);
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid var(--jrk-petrol);
+        }
+        .workshop-item:last-child {
+            margin-bottom: 0;
+        }
+        /* Workshop warning icon */
+        .workshop-warning {
+            color: var(--jrk-warning);
+            font-size: 1.1rem;
+            margin-left: 8px;
+        }
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            header h1 {
+                font-size: 2rem;
+            }
+            .search-container {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .filter-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .filter-group label {
+                min-width: auto;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+            .participant-card {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 15px;
+            }
+            .participant-actions {
+                flex-direction: row;
+                justify-content: center;
+            }
+            .modal-content {
+                width: 95%;
+                margin: 5% auto;
+                max-height: 85vh;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .cloud-status, .user-info {
+                position: relative;
+                top: auto;
+                left: auto;
+                right: auto;
+                margin-bottom: 20px;
+            }
+        }
+        @media (max-width: 480px) {
+            .filter-buttons {
+                justify-content: center;
+            }
+            .filter-btn {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
+            .participant-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .checkin-btn, .checkout-btn {
+                font-size: 0.8rem;
+                padding: 8px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Cloud Status Indicator -->
+    <div class="cloud-status" id="cloudStatus">
+        <span id="cloudIcon">🔄</span>
+        <span id="cloudText">Verbinde...</span>
+    </div>
+
+    <!-- User Info -->
+    <div class="user-info" id="userInfo" style="display: none;">
+        <span>👤</span>
+        <span id="currentUser"></span>
+        <button class="logout-btn" onclick="logout()">Abmelden</button>
+    </div>
+
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-card">
+            <div class="login-logo">🏥</div>
+            <h1 class="login-title">JRK Check-in</h1>
+            <p class="login-subtitle">Echte Cloud Edition</p>
+            
+            <form class="login-form" onsubmit="handleLogin(event)">
+                <input type="text" id="username" class="login-input" placeholder="Benutzername" required>
+                <input type="password" id="password" class="login-input" placeholder="Passwort" required>
+                <button type="submit" class="login-button">Anmelden</button>
+            </form>
+            
+            <div class="login-error" id="loginError">
+                Ungültige Anmeldedaten. Bitte versuchen Sie es erneut.
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="container" id="mainApp" style="display: none;">
+        <header>
+            <h1>JRK Veranstaltungs Check-in</h1>
+            
+            <!-- Admin Section (only for admin users) -->
+            <div class="admin-section" id="adminSection" style="display: none;">
+                <div class="admin-title">
+                    <span>⚙️</span>
+                    <span>Administrator-Bereich</span>
+                </div>
+                <div class="upload-section">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-content">
+                            <div class="upload-icon">📁</div>
+                            <p>Excel-Datei hier ablegen oder klicken zum Auswählen</p>
+                            <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="saved-data-notification" id="savedDataNotification" style="display: none;">
+            <div class="notification-content">
+                <span class="notification-icon">☁️</span>
+                <span class="notification-text">Cloud-Daten synchronisiert</span>
+                <button class="notification-close" id="closeSavedNotification">×</button>
+            </div>
+        </div>
+
+        <main id="mainContent" style="display: none;">
+            <!-- Dashboard - Vereinfacht auf 4 Karten -->
+            <section class="dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card total">
+                        <div class="stat-number" id="totalCount">0</div>
+                        <div class="stat-label">Gesamt</div>
+                    </div>
+                    <div class="stat-card present">
+                        <div class="stat-number" id="presentCount">0</div>
+                        <div class="stat-label">Anwesend</div>
+                    </div>
+                    <div class="stat-card absent">
+                        <div class="catering-breakdown">
+                            <div class="catering-item">
+                                <span class="catering-label">Abwesend:</span>
+                                <span class="catering-count" id="absentCount">0</span>
+                            </div>
+                            <div class="catering-item">
+                                <span class="catering-label">Ausflug:</span>
+                                <span class="catering-count" id="ausflugsDetailCount">0</span>
+                            </div>
+                            <div class="catering-item">
+                                <span class="catering-label">Krank:</span>
+                                <span class="catering-count" id="krankDetailCount">0</span>
+                            </div>
+                            <div class="catering-item">
+                                <span class="catering-label">Nicht eingecheckt:</span>
+                                <span class="catering-count" id="notCheckedCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card catering">
+                        <div class="catering-breakdown">
+                            <div class="catering-item">
+                                <span class="catering-label">Vollkost:</span>
+                                <span class="catering-count" id="vollkostCount">0</span>
+                            </div>
+                            <div class="catering-item">
+                                <span class="catering-label">Vegetarisch:</span>
+                                <span class="catering-count" id="vegetarischCount">0</span>
+                            </div>
+                            <div class="catering-item">
+                                <span class="catering-label">Vegan:</span>
+                                <span class="catering-count" id="veganCount">0</span>
+            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Search and Filters -->
+            <section class="controls">
+                <div class="search-container">
+                    <input type="text" id="searchName" placeholder="Name/Buchungsnummer suchen..." class="search-input">
+                    <input type="text" id="searchAge" placeholder="Alter suchen..." class="search-input">
+                    <input type="text" id="searchRoom" placeholder="Zimmernummer suchen..." class="search-input">
+                </div>
+                
+                <div class="filter-container">
+                    <div class="filter-group">
+                        <label>Verpflegung:</label>
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-filter="all">Alle</button>
+                            <button class="filter-btn" data-filter="Vollkost">Vollkost</button>
+                            <button class="filter-btn" data-filter="Vegetarisch">Vegetarisch</button>
+                            <button class="filter-btn" data-filter="Vegan">Vegan</button>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <div class="filter-buttons">
+                            <button class="filter-btn status-filter active" data-status="alle-anmeldungen">Alle Anmeldungen</button>
+                            <button class="filter-btn status-filter" data-status="present">Anwesend</button>
+                            <button class="filter-btn status-filter" data-status="absent">Abwesend</button>
+                            <button class="filter-btn status-filter" data-status="ausflug">Ausflug</button>
+                            <button class="filter-btn status-filter" data-status="krank">Krank</button>
+                        </div>
+                    </div>
+
+                    <!-- Medical info filter -->
+                    <div class="filter-group">
+                        <label>Medizinische Infos:</label>
+                        <div class="filter-buttons">
+                            <button class="filter-btn medical-filter active" data-medical="all">Alle</button>
+                            <button class="filter-btn medical-filter" data-medical="yes">Mit Infos</button>
+                            <button class="filter-btn medical-filter" data-medical="no">Ohne Infos</button>
+                        </div>
+                    </div>
+
+                    <div class="filter-group" id="buildingFilterGroup" style="display: none;">
+                        <label>Gebäude:</label>
+                        <div class="filter-buttons" id="buildingFilters">
+                            <!-- Building filters will be dynamically added here -->
+                        </div>
+                    </div>
+
+                    <div class="filter-group" id="ortsgruppeFilterGroup" style="display: none;">
+                        <label>Ortsgruppe:</label>
+                        <div class="filter-buttons" id="ortsgruppeFilters">
+                            <!-- Ortsgruppe filters will be dynamically added here -->
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="resetFilters" class="reset-btn">Filter zurücksetzen</button>
+                        <button id="exportBtn" class="export-btn">Gefilterte Daten exportieren</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Participants List -->
+            <section class="participants">
+                <div class="participants-header">
+                    <h2>Teilnehmer (<span id="filteredCount">0</span>)</h2>
+                </div>
+                <div class="participants-list" id="participantsList">
+                    <!-- Participants will be dynamically added here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for participant details -->
+    <div class="modal" id="participantModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalName"></h3>
+                <span class="modal-close" id="modalClose">&times;</span>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Participant details will be shown here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script>
+        // FIXED: Cloud API Configuration - Compatible with current backend
+        const API_BASE_URL = window.location.origin + '/api';
+        
+        // User credentials and permissions
+        const validUsers = {
+            'admin': 'jrk2024!',
+            'team1': 'checkin123',
+            'team2': 'checkin123',
+            'team3': 'checkin123',
+            'leitung': 'jrk2024!',
+            'weilheim': 'weilheim2024',
+            'peissenberg': 'peissenberg2024',
+            'peiting': 'peiting2024',
+            'penzberg': 'penzberg2024',
+            'kreisverband': 'kreisverband2024'
+        };
+
+        const userPermissions = {
+            'admin': ['upload', 'editRoom', 'setStatus', 'editMedical', 'editWorkshop', 'export'],
+            'leitung': ['editRoom', 'setStatus', 'editMedical', 'editWorkshop', 'export'],
+            'team1': ['setStatus', 'editMedical'],
+            'team2': ['setStatus', 'editMedical'],
+            'team3': ['setStatus', 'editMedical'],
+            'weilheim': ['viewOnly'],
+            'peissenberg': ['viewOnly'],
+            'peiting': ['viewOnly'],
+            'penzberg': ['viewOnly'],
+            'kreisverband': ['viewOnly']
+        };
+
+        // Ortsgruppe restrictions for specific users
+        const userOrtsgruppeFilter = {
+            'weilheim': 'Weilheim',
+            'peissenberg': 'Peißenberg',
+            'peiting': 'Peiting',
+            'penzberg': 'Penzberg'
+            // kreisverband has no restriction (can see all)
+        };
+
+        function hasPermission(action) {
+            if (!currentUser) return false;
+            return userPermissions[currentUser] && userPermissions[currentUser].includes(action);
+        }
+
+        function getUserOrtsgruppeFilter() {
+            return userOrtsgruppeFilter[currentUser] || null;
+        }
+
+        function isViewOnlyUser() {
+            return hasPermission('viewOnly');
+        }
+
+        // Current user
+        let currentUser = null;
+
+        // JRK Check-in App - Real Cloud Version
+        class RealCloudCheckInApp {
+            constructor() {
+                this.participants = [];
+                this.filteredParticipants = [];
+                this.currentFilters = {
+                    catering: 'all',
+                    status: 'alle-anmeldungen',
+                    building: 'all',
+                    ortsgruppe: 'all',
+                    medical: 'all',
+                    searchName: '',
+                    searchAge: '',
+                    searchRoom: ''
+                };
+                this.buildings = new Set();
+                this.ortsgruppen = new Set();
+                this.isConnected = false;
+                this.syncInterval = null;
+                this.lastSyncTime = null;
+                this.init();
+            }
+
+            async init() {
+                this.setupEventListeners();
+                await this.testCloudConnection();
+                await this.loadFromCloud();
+                this.startSyncInterval();
+            }
+
+            setupEventListeners() {
+                // File upload (admin only)
+                const uploadArea = document.getElementById('uploadArea');
+                const fileInput = document.getElementById('fileInput');
+
+                if (uploadArea && fileInput) {
+                    uploadArea.addEventListener('click', (e) => {
+                        if (e.target.tagName !== 'BUTTON') {
+                            fileInput.click();
+                        }
+                    });
+                    uploadArea.addEventListener('dragover', this.handleDragOver.bind(this));
+                    uploadArea.addEventListener('dragleave', this.handleDragLeave.bind(this));
+                    uploadArea.addEventListener('drop', this.handleDrop.bind(this));
+                    fileInput.addEventListener('change', this.handleFileSelect.bind(this));
+                }
+
+                // Search inputs
+                document.getElementById('searchName').addEventListener('input', this.handleSearchName.bind(this));
+                document.getElementById('searchAge').addEventListener('input', this.handleSearchAge.bind(this));
+                document.getElementById('searchRoom').addEventListener('input', this.handleSearchRoom.bind(this));
+
+                // Filter buttons
+                document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
+                    btn.addEventListener('click', this.handleCateringFilter.bind(this));
+                });
+
+                document.querySelectorAll('.status-filter').forEach(btn => {
+                    btn.addEventListener('click', this.handleStatusFilter.bind(this));
+                });
+
+                // Medical filter buttons
+                document.querySelectorAll('.medical-filter').forEach(btn => {
+                    btn.addEventListener('click', this.handleMedicalFilter.bind(this));
+                });
+
+                // Action buttons
+                document.getElementById('resetFilters').addEventListener('click', this.resetFilters.bind(this));
+                document.getElementById('exportBtn').addEventListener('click', this.exportFilteredData.bind(this));
+
+                // Modal
+                document.getElementById('modalClose').addEventListener('click', this.closeModal.bind(this));
+                document.getElementById('participantModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'participantModal') this.closeModal();
+                });
+
+                // Saved data notification
+                document.getElementById('closeSavedNotification').addEventListener('click', () => {
+                    document.getElementById('savedDataNotification').style.display = 'none';
+                });
+            }
+
+            async testCloudConnection() {
+                try {
+                    this.updateCloudStatus('connecting', 'Verbinde...');
+                    
+                    const response = await fetch(`${API_BASE_URL}/data`);
+                    
+                    if (response.ok) {
+                        this.isConnected = true;
+                        this.updateCloudStatus('connected', 'Verbunden');
+                        console.log('Cloud connection established');
+                    } else {
+                        throw new Error('Connection test failed');
+                    }
+                } catch (error) {
+                    console.error('Cloud connection error:', error);
+                    this.isConnected = false;
+                    this.updateCloudStatus('offline', 'Offline');
+                }
+            }
+
+            startSyncInterval() {
+                // Only start sync if not already running
+                if (this.syncInterval) {
+                    clearInterval(this.syncInterval);
+                }
+                
+                // CRITICAL FIX: Increase sync interval to 30 seconds to reduce conflicts
+                // and only test connection, don't pull data
+                this.syncInterval = setInterval(async () => {
+                    if (this.isConnected) {
+                        // Only test connection, don't sync data automatically
+                        try {
+                            const response = await fetch(`${API_BASE_URL}/data`);
+                            if (response.ok) {
+                                this.updateCloudStatus('connected', 'Verbunden');
+                            } else {
+                                throw new Error('Connection lost');
+                            }
+                        } catch (error) {
+                            this.isConnected = false;
+                            this.updateCloudStatus('offline', 'Offline');
+                        }
+                    } else {
+                        await this.testCloudConnection();
+                    }
+                }, 5000); // Increased to 30 seconds
+            }
+
+            async syncWithCloud() {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/data`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const cloudData = await response.json();
+                    
+                    // CRITICAL FIX: Only sync FROM cloud if we have NO local data
+                    // Never overwrite existing local data with cloud data during normal sync
+                    if (this.participants.length === 0) {
+                        // Only load from cloud if we have no local participants yet
+                        if (Array.isArray(cloudData) && cloudData.length > 0) {
+                            this.participants = cloudData;
+                            this.extractBuildings();
+                            this.setupBuildingFilters();
+                            this.setupOrtsgruppeFilters();
+                            this.applyFilters();
+                            this.updateDashboard();
+                        } else if (cloudData && Array.isArray(cloudData.participants) && cloudData.participants.length > 0) {
+                            this.participants = cloudData.participants;
+                            this.extractBuildings();
+                            this.setupBuildingFilters();
+                            this.setupOrtsgruppeFilters();
+                            this.applyFilters();
+                            this.updateDashboard();
+                        }
+                    }
+                    // If we already have local data, DON'T overwrite it with cloud data
+                    // The sync should only push TO cloud, not pull FROM cloud
+                    
+                    this.updateCloudStatus('connected', 'Verbunden');
+                } catch (error) {
+                    console.error('Sync error:', error);
+                    this.isConnected = false;
+                    this.updateCloudStatus('offline', 'Offline');
+                }
+            }
+
+            updateCloudStatus(status, text) {
+                const cloudStatus = document.getElementById('cloudStatus');
+                const cloudIcon = document.getElementById('cloudIcon');
+                const cloudText = document.getElementById('cloudText');
+                
+                cloudStatus.className = `cloud-status ${status}`;
+                cloudText.textContent = text;
+                
+                switch(status) {
+                    case 'connected':
+                        cloudIcon.textContent = '☁️';
+                        break;
+                    case 'offline':
+                        cloudIcon.textContent = '📱';
+                        break;
+                    case 'connecting':
+                        cloudIcon.textContent = '🔄';
+                        break;
+                }
+            }
+
+            async loadFromCloud() {
+                try {
+                    if (this.isConnected) {
+                        const response = await fetch(`${API_BASE_URL}/data`);
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        const cloudData = await response.json();
+                        
+                        // CRITICAL: Only load from cloud on initial app startup
+                        // Check if we already have data to prevent overwriting
+                        if (this.participants.length === 0) {
+                            if (Array.isArray(cloudData)) {
+                                this.participants = cloudData;
+                            } else if (cloudData && Array.isArray(cloudData.participants)) {
+                                this.participants = cloudData.participants;
+                            }
+                            
+                            this.processLoadedData();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading from cloud:', error);
+                    this.isConnected = false;
+                    this.updateCloudStatus('offline', 'Offline');
+                }
+            }
+
+            processLoadedData() {
+                if (this.participants.length > 0) {
+                    // Konvertiere "Unbekannt" ohne Zimmer zu "Tagesgast"
+                    this.participants.forEach(participant => {
+                        if (participant.building === 'Unbekannt' && (!participant.room || participant.room.trim() === '' || participant.room === '0')) {
+                            participant.building = 'Tagesgast';
+                        }
+                        // Initialize medical info if not present
+                        if (!participant.hasOwnProperty('hasMedicalInfo')) {
+                            participant.hasMedicalInfo = false;
+                            participant.medicalInfo = '';
+                        }
+                        // Initialize ortsgruppe if not present
+                        if (!participant.hasOwnProperty('ortsgruppe')) {
+                            participant.ortsgruppe = 'Unbekannt';
+                        }
+                        // Initialize workshop changes if not present
+                        if (!participant.hasOwnProperty('workshopChanges')) {
+                            participant.workshopChanges = [];
+                        }
+                        // Initialize comments if not present
+                        if (!participant.hasOwnProperty('comments')) {
+                            participant.comments = '';
+                        }
+                    });
+                    
+                    // Set initial Ortsgruppe filter for restricted users
+                    const userOrtsgruppeRestriction = getUserOrtsgruppeFilter();
+                    if (userOrtsgruppeRestriction) {
+                        this.currentFilters.ortsgruppe = userOrtsgruppeRestriction;
+                    }
+                    
+                    this.extractBuildings();
+                    this.setupBuildingFilters();
+                    this.setupOrtsgruppeFilters();
+                    this.applyFilters();
+                    this.updateDashboard();
+                    this.showMainContent();
+                    
+                    // Show sync notification
+                    document.getElementById('savedDataNotification').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('savedDataNotification').style.display = 'none';
+                    }, 3000);
+                }
+            }
+
+            async saveToCloud() {
+                try {
+                    if (this.isConnected) {
+                        const response = await fetch(`${API_BASE_URL}/participants`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                participants: this.participants,
+                                user: currentUser
+                            })
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Failed to save participants');
+                        }
+                        
+                        this.updateCloudStatus('connected', 'Gespeichert');
+                        setTimeout(() => {
+                            this.updateCloudStatus('connected', 'Verbunden');
+                        }, 2000);
+                        
+                    } else {
+                        throw new Error('Not connected to cloud');
+                    }
+                } catch (error) {
+                    console.error('Error saving to cloud:', error);
+                    this.updateCloudStatus('offline', 'Speicherfehler');
+                    setTimeout(() => {
+                        this.updateCloudStatus('offline', 'Offline');
+                    }, 3000);
+                }
+            }
+
+            // FIXED: Force upload method for new Excel files
+            async forceUploadToCloud() {
+                try {
+                    if (this.isConnected) {
+                        const response = await fetch(`${API_BASE_URL}/upload`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                participants: this.participants,
+                                user: currentUser,
+                                forceUpdate: true,
+                                timestamp: new Date().toISOString()
+                            })
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Failed to upload new data');
+                        }
+                        
+                        console.log('New Excel data successfully uploaded to cloud');
+                        
+                    } else {
+                        throw new Error('Not connected to cloud');
+                    }
+                } catch (error) {
+                    console.error('Error uploading to cloud:', error);
+                    // Fallback to regular save method
+                    await this.saveToCloud();
+                }
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+                e.currentTarget.classList.add('dragover');
+            }
+
+            handleDragLeave(e) {
+                e.currentTarget.classList.remove('dragover');
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                e.currentTarget.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    this.processFile(files[0]);
+                }
+            }
+
+            handleFileSelect(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    this.processFile(file);
+                }
+                e.target.value = '';
+            }
+
+            async processFile(file) {
+                if (!hasPermission('upload')) {
+                    alert('Sie haben keine Berechtigung, Excel-Dateien hochzuladen.');
+                    return;
+                }
+
+                if (!file.name.match(/\.(xlsx|xls)$/)) {
+                    alert('Bitte wählen Sie eine Excel-Datei (.xlsx oder .xls)');
+                    return;
+                }
+
+                try {
+                    // CRITICAL: Stop sync completely during upload to prevent conflicts
+                    if (this.syncInterval) {
+                        clearInterval(this.syncInterval);
+                        this.syncInterval = null;
+                    }
+                    
+                    this.updateCloudStatus('connecting', 'Verarbeite Datei...');
+                    
+                    const data = await this.readExcelFile(file);
+                    this.participants = this.parseParticipants(data);
+                    this.extractBuildings();
+                    this.setupBuildingFilters();
+                    this.setupOrtsgruppeFilters();
+                    this.applyFilters();
+                    this.updateDashboard();
+                    this.showMainContent();
+                    
+                    // CRITICAL: Force upload new data to cloud with timestamp
+                    await this.forceUploadToCloud();
+                    
+                    const fileInput = document.getElementById('fileInput');
+                    if (fileInput) fileInput.value = '';
+                    
+                    // Show success notification
+                    this.updateCloudStatus('connected', 'Upload erfolgreich');
+                    alert(`Excel-Datei erfolgreich hochgeladen! ${this.participants.length} Teilnehmer importiert.`);
+                    
+                    // CRITICAL: Don't restart sync immediately - wait 10 seconds to ensure cloud has processed
+                    setTimeout(() => {
+                        this.startSyncInterval();
+                    }, 10000);
+                    
+                } catch (error) {
+                    console.error('Fehler beim Verarbeiten der Datei:', error);
+                    alert('Fehler beim Lesen der Excel-Datei. Bitte überprüfen Sie das Format.');
+                    
+                    // Restart sync interval even on error
+                    this.startSyncInterval();
+                }
+            }
+
+            readExcelFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                            resolve(jsonData);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+                    reader.onerror = reject;
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            parseParticipants(data) {
+                if (data.length < 2) return [];
+
+                const headers = data[0].map(h => String(h).toLowerCase().trim());
+                const participants = [];
+
+                // Find column indices with priority for specific columns
+                let bookingIndex = 0; // Column A
+                if (bookingIndex >= headers.length || !data[1] || !data[1][bookingIndex]) {
+                    bookingIndex = this.findColumnIndex(headers, ['buchung', 'booking', 'buchungsnummer']);
+                }
+                
+                let lastNameIndex = 2; // Column C
+                if (lastNameIndex >= headers.length || !data[1] || !data[1][lastNameIndex]) {
+                    lastNameIndex = this.findColumnIndex(headers, ['nachname', 'lastname', 'name']);
+                }
+                
+                const firstNameIndex = this.findColumnIndex(headers, ['vorname', 'firstname']);
+                const ageIndex = this.findColumnIndex(headers, ['alter', 'age']);
+                
+                // FIXED: Zimmer = AM (38), Haus = AN (39), Ortsgruppe = AT (45)
+                let roomIndex = 38; // Column AM (Zimmer)
+                if (roomIndex >= headers.length || !data[1] || !data[1][roomIndex]) {
+                    roomIndex = this.findColumnIndex(headers, ['zimmer', 'room', 'zimmernummer']);
+                }
+                
+                let buildingIndex = 39; // Column AN (Haus)
+                if (buildingIndex >= headers.length || !data[1] || !data[1][buildingIndex]) {
+                    buildingIndex = this.findColumnIndex(headers, ['gebäude', 'building', 'haus']);
+                }
+                
+                let ortsgruppeIndex = 45; // Column AT (Ortsgruppe)
+                if (ortsgruppeIndex >= headers.length || !data[1] || !data[1][ortsgruppeIndex]) {
+                    ortsgruppeIndex = this.findColumnIndex(headers, ['ortsgruppe', 'ort', 'gruppe', 'verband']);
+                }
+                
+                const cateringIndex = this.findColumnIndex(headers, ['verpflegung', 'catering', 'essen']);
+                
+                // Workshop-Spalten (AP, AQ, AR, AS = Spalten 41, 42, 43, 44)
+                const workshopSamstagIndex = 41;  // AP - Samstagvormittag
+                const workshopSonntagIndex = 42;  // AQ - Sonntagvormittag  
+                const workshopMontagVormittagIndex = 43;  // AR - Montagvormittag
+                const workshopMontagNachmittagIndex = 44; // AS - Montagnachmittag
+
+                for (let i = 1; i < data.length; i++) {
+                    const row = data[i];
+                    if (!row || row.length === 0) continue;
+
+                    const firstName = firstNameIndex !== -1 ? String(row[firstNameIndex] || '').trim() : '';
+                    const lastName = lastNameIndex !== -1 ? String(row[lastNameIndex] || '').trim() : '';
+                    const name = `${firstName} ${lastName}`.trim();
+
+                    if (!name) continue;
+
+                    const booking = bookingIndex !== -1 ? String(row[bookingIndex] || '').trim() : '';
+                    const age = ageIndex !== -1 ? String(row[ageIndex] || '').trim() : '';
+                    const room = roomIndex !== -1 ? String(row[roomIndex] || '').trim() : '';
+                    const ortsgruppe = ortsgruppeIndex !== -1 ? String(row[ortsgruppeIndex] || '').trim() : '';
+                    const catering = cateringIndex !== -1 ? String(row[cateringIndex] || '').trim() : '';
+                    
+                    // Workshop-Daten aus den 4 Spalten sammeln
+                    const workshopSamstag = workshopSamstagIndex < row.length ? String(row[workshopSamstagIndex] || '').trim() : '';
+                    const workshopSonntag = workshopSonntagIndex < row.length ? String(row[workshopSonntagIndex] || '').trim() : '';
+                    const workshopMontagVM = workshopMontagVormittagIndex < row.length ? String(row[workshopMontagVormittagIndex] || '').trim() : '';
+                    const workshopMontagNM = workshopMontagNachmittagIndex < row.length ? String(row[workshopMontagNachmittagIndex] || '').trim() : '';
+
+                    // Alle Workshops zusammenfassen
+                    const allWorkshops = [workshopSamstag, workshopSonntag, workshopMontagVM, workshopMontagNM]
+                        .filter(w => w && w !== '')
+                        .join(', ');
+                    
+                    const building = buildingIndex !== -1 ? String(row[buildingIndex] || '').trim() : '';
+
+                    const extractedBuilding = this.extractBuildingFromRoom(room);
+                    const participant = {
+                        id: i,
+                        name,
+                        firstName,
+                        lastName,
+                        booking,
+                        age,
+                        room,
+                        originalRoom: room,
+                        building: building || extractedBuilding,
+                        ortsgruppe: ortsgruppe || 'Unbekannt',
+                        catering: this.normalizeCatering(catering),
+                        workshop: allWorkshops,
+                        workshops: this.parseWorkshopsFromColumns(workshopSamstag, workshopSonntag, workshopMontagVM, workshopMontagNM),
+                        status: 'absent',
+                        checkInTime: null,
+                        checkOutTime: null,
+                        ausflugsTime: null,
+                        krankTime: null,
+                        roomChanges: [],
+                        // Medical info fields
+                        hasMedicalInfo: false,
+                        medicalInfo: '',
+                        // Workshop changes tracking
+                        workshopChanges: [],
+                        // Comments field
+                        comments: ''
+                    };
+
+                    participants.push(participant);
+                }
+
+                return participants;
+            }
+
+            findColumnIndex(headers, possibleNames) {
+                for (const name of possibleNames) {
+                    const index = headers.findIndex(h => h.includes(name));
+                    if (index !== -1) return index;
+                }
+                return -1;
+            }
+
+            normalizeCatering(catering) {
+                const lower = catering.toLowerCase();
+                if (lower.includes('vegan')) return 'Vegan';
+                if (lower.includes('vegetar')) return 'Vegetarisch';
+                if (lower.includes('vollkost') || lower.includes('normal') || lower.includes('fleisch')) return 'Vollkost';
+                return catering || 'Vollkost';
+            }
+
+            parseWorkshopsFromColumns(samstag, sonntag, montagVM, montagNM) {
+                const workshops = [];
+                
+                if (samstag) {
+                    workshops.push({
+                        day: 'Samstag Vormittag',
+                        workshop: samstag
+                    });
+                }
+                
+                if (sonntag) {
+                    workshops.push({
+                        day: 'Sonntag Vormittag', 
+                        workshop: sonntag
+                    });
+                }
+                
+                if (montagVM) {
+                    workshops.push({
+                        day: 'Montag Vormittag',
+                        workshop: montagVM
+                    });
+                }
+                
+                if (montagNM) {
+                    workshops.push({
+                        day: 'Montag Nachmittag',
+                        workshop: montagNM
+                    });
+                }
+                
+                return workshops;
+            }
+
+            extractBuildings() {
+                this.buildings.clear();
+                this.ortsgruppen.clear();
+                this.participants.forEach(participant => {
+                    if (participant.building) {
+                        this.buildings.add(participant.building);
+                    }
+                    if (participant.ortsgruppe) {
+                        this.ortsgruppen.add(participant.ortsgruppe);
+                    }
+                });
+            }
+
+            extractBuildingFromRoom(room) {
+                const roomStr = String(room).trim();
+                
+                if (!roomStr || roomStr === '' || roomStr === '0') {
+                    return 'Tagesgast';
+                }
+                
+                const roomNum = parseInt(roomStr);
+                
+                if (roomNum >= 14 && roomNum <= 21) return 'A-EG';
+                if (roomNum >= 26 && roomNum <= 33) return 'A-OG';
+                if (roomNum === 341 || roomNum === 342) return 'A-OG';
+                if (roomNum >= 37 && roomNum <= 44) return 'B-EG';
+                if (roomNum >= 46 && roomNum <= 55) return 'B-OG';
+                if (roomNum >= 81 && roomNum <= 94) return 'SH';
+                
+                const match = roomStr.match(/^([A-Za-z-]+)/);
+                if (match) {
+                    return match[1].toUpperCase();
+                }
+                
+                return 'Tagesgast';
+            }
+
+            setupBuildingFilters() {
+                const buildingFilterGroup = document.getElementById('buildingFilterGroup');
+                const buildingFilters = document.getElementById('buildingFilters');
+                
+                if (this.buildings.size > 0) {
+                    buildingFilterGroup.style.display = 'block';
+                    buildingFilters.innerHTML = '';
+                    
+                    const allBtn = document.createElement('button');
+                    allBtn.className = 'filter-btn active';
+                    allBtn.setAttribute('data-building', 'all');
+                    allBtn.textContent = 'Alle';
+                    allBtn.addEventListener('click', this.handleBuildingFilter.bind(this));
+                    buildingFilters.appendChild(allBtn);
+                    
+                    Array.from(this.buildings).sort().forEach(building => {
+                        const btn = document.createElement('button');
+                        btn.className = 'filter-btn';
+                        btn.setAttribute('data-building', building);
+                        btn.textContent = building;
+                        btn.addEventListener('click', this.handleBuildingFilter.bind(this));
+                        buildingFilters.appendChild(btn);
+                    });
+                } else {
+                    buildingFilterGroup.style.display = 'none';
+                }
+            }
+
+            setupOrtsgruppeFilters() {
+                const ortsgruppeFilterGroup = document.getElementById('ortsgruppeFilterGroup');
+                const ortsgruppeFilters = document.getElementById('ortsgruppeFilters');
+                
+                // Check if user has Ortsgruppe restriction
+                const userOrtsgruppeRestriction = getUserOrtsgruppeFilter();
+                
+                if (userOrtsgruppeRestriction) {
+                    // User can only see their specific Ortsgruppe - hide filter completely
+                    ortsgruppeFilterGroup.style.display = 'none';
+                    // Set filter to their Ortsgruppe automatically
+                    this.currentFilters.ortsgruppe = userOrtsgruppeRestriction;
+                } else if (this.ortsgruppen.size > 0) {
+                    // Normal users see all Ortsgruppe filters
+                    ortsgruppeFilterGroup.style.display = 'block';
+                    ortsgruppeFilters.innerHTML = '';
+                    
+                    const allBtn = document.createElement('button');
+                    allBtn.className = 'filter-btn active';
+                    allBtn.setAttribute('data-ortsgruppe', 'all');
+                    allBtn.textContent = 'Alle';
+                    allBtn.addEventListener('click', this.handleOrtsgruppeFilter.bind(this));
+                    ortsgruppeFilters.appendChild(allBtn);
+                    
+                    Array.from(this.ortsgruppen).sort().forEach(ortsgruppe => {
+                        const btn = document.createElement('button');
+                        btn.className = 'filter-btn';
+                        btn.setAttribute('data-ortsgruppe', ortsgruppe);
+                        btn.textContent = ortsgruppe;
+                        btn.addEventListener('click', this.handleOrtsgruppeFilter.bind(this));
+                        ortsgruppeFilters.appendChild(btn);
+                    });
+                } else {
+                    ortsgruppeFilterGroup.style.display = 'none';
+                }
+            }
+
+            handleSearchName(e) {
+                this.currentFilters.searchName = e.target.value.toLowerCase();
+                this.applyFilters();
+            }
+
+            handleSearchAge(e) {
+                this.currentFilters.searchAge = e.target.value.toLowerCase();
+                this.applyFilters();
+            }
+
+            handleSearchRoom(e) {
+                this.currentFilters.searchRoom = e.target.value.toLowerCase();
+                this.applyFilters();
+            }
+
+            handleCateringFilter(e) {
+                document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                this.currentFilters.catering = e.target.dataset.filter;
+                this.applyFilters();
+            }
+
+            handleStatusFilter(e) {
+                document.querySelectorAll('.status-filter').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                this.currentFilters.status = e.target.dataset.status;
+                this.applyFilters();
+            }
+
+            // Medical filter handler
+            handleMedicalFilter(e) {
+                document.querySelectorAll('.medical-filter').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                this.currentFilters.medical = e.target.dataset.medical;
+                this.applyFilters();
+            }
+
+            handleBuildingFilter(e) {
+                document.querySelectorAll('.filter-btn[data-building]').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                this.currentFilters.building = e.target.dataset.building;
+                this.applyFilters();
+            }
+
+            handleOrtsgruppeFilter(e) {
+                document.querySelectorAll('.filter-btn[data-ortsgruppe]').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                this.currentFilters.ortsgruppe = e.target.dataset.ortsgruppe;
+                this.applyFilters();
+            }
+
+            applyFilters() {
+                this.filteredParticipants = this.participants.filter(participant => {
+                    // User-specific Ortsgruppe restriction (highest priority)
+                    const userOrtsgruppeRestriction = getUserOrtsgruppeFilter();
+                    if (userOrtsgruppeRestriction && participant.ortsgruppe !== userOrtsgruppeRestriction) {
+                        return false;
+                    }
+
+                    if (this.currentFilters.searchName) {
+                        const searchTerm = this.currentFilters.searchName;
+                        const fullNameMatch = participant.name.toLowerCase().includes(searchTerm);
+                        const firstNameMatch = participant.firstName.toLowerCase().includes(searchTerm);
+                        const lastNameMatch = participant.lastName.toLowerCase().includes(searchTerm);
+                        const bookingMatch = participant.booking.toLowerCase().includes(searchTerm);
+                        if (!fullNameMatch && !firstNameMatch && !lastNameMatch && !bookingMatch) return false;
+                    }
+
+                    if (this.currentFilters.searchAge) {
+                        const ageMatch = participant.age.toLowerCase().includes(this.currentFilters.searchAge);
+                        if (!ageMatch) return false;
+                    }
+
+                    if (this.currentFilters.searchRoom) {
+                        const roomMatch = participant.room.toLowerCase().includes(this.currentFilters.searchRoom);
+                        if (!roomMatch) return false;
+                    }
+
+                    if (this.currentFilters.catering !== 'all') {
+                        if (participant.catering !== this.currentFilters.catering) return false;
+                    }
+
+                    if (this.currentFilters.status === 'present' && participant.status !== 'present') return false;
+                    if (this.currentFilters.status === 'absent' && participant.status !== 'absent') return false;
+                    if (this.currentFilters.status === 'ausflug' && participant.status !== 'ausflug') return false;
+                    if (this.currentFilters.status === 'krank' && participant.status !== 'krank') return false;
+
+                    // Medical filter
+                    if (this.currentFilters.medical === 'yes' && !participant.hasMedicalInfo) return false;
+                    if (this.currentFilters.medical === 'no' && participant.hasMedicalInfo) return false;
+
+                    if (this.currentFilters.building !== 'all') {
+                        if (participant.building !== this.currentFilters.building) return false;
+                    }
+
+                    if (this.currentFilters.ortsgruppe !== 'all') {
+                        if (participant.ortsgruppe !== this.currentFilters.ortsgruppe) return false;
+                    }
+
+                    return true;
+                });
+
+                this.renderParticipants();
+                this.updateDashboard();
+            }
+
+            resetFilters() {
+                // Check if user has Ortsgruppe restriction
+                const userOrtsgruppeRestriction = getUserOrtsgruppeFilter();
+                
+                this.currentFilters = {
+                    catering: 'all',
+                    status: 'alle-anmeldungen',
+                    building: 'all',
+                    ortsgruppe: userOrtsgruppeRestriction || 'all', // Keep user's Ortsgruppe restriction
+                    medical: 'all',
+                    searchName: '',
+                    searchAge: '',
+                    searchRoom: ''
+                };
+
+                document.getElementById('searchName').value = '';
+                document.getElementById('searchAge').value = '';
+                document.getElementById('searchRoom').value = '';
+
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
+                const alleAnmeldungenBtn = document.querySelector('.status-filter[data-status="alle-anmeldungen"]');
+                if (alleAnmeldungenBtn) alleAnmeldungenBtn.classList.add('active');
+                
+                const allMedicalBtn = document.querySelector('.medical-filter[data-medical="all"]');
+                if (allMedicalBtn) allMedicalBtn.classList.add('active');
+                
+                const allBuildingBtn = document.querySelector('.filter-btn[data-building="all"]');
+                if (allBuildingBtn) allBuildingBtn.classList.add('active');
+
+                // Only reset Ortsgruppe filter if user doesn't have restriction
+                if (!userOrtsgruppeRestriction) {
+                    const allOrtsgruppeBtn = document.querySelector('.filter-btn[data-ortsgruppe="all"]');
+                    if (allOrtsgruppeBtn) allOrtsgruppeBtn.classList.add('active');
+                }
+
+                this.applyFilters();
+            }
+
+            renderParticipants() {
+                const container = document.getElementById('participantsList');
+                const filteredCount = document.getElementById('filteredCount');
+                
+                filteredCount.textContent = this.filteredParticipants.length;
+                
+                if (this.filteredParticipants.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 0; color: #95a5a6;">Keine Teilnehmer gefunden</div>';
+                    return;
+                }
+
+                container.innerHTML = this.filteredParticipants.map(participant => {
+                    const statusText = {
+                        'present': 'Anwesend',
+                        'absent': 'Abwesend', 
+                        'ausflug': 'Ausflug',
+                        'krank': 'Krank'
+                    };
+                    
+                    // Checkin button now uniform for all participants
+                    let checkinBtnClass = 'checkin-btn';
+                    
+                    return `
+                    <div class="participant-card ${participant.status}">
+                        <div class="participant-info" onclick="app.showParticipantDetails(${participant.id})">
+                            <div class="participant-name">
+                                ${participant.name}
+                                ${participant.hasMedicalInfo ? '<span class="medical-indicator">🏥 Med</span>' : ''}
+                                ${participant.workshopChanges && participant.workshopChanges.length > 0 ? '<span class="workshop-change-indicator">📝 WS</span>' : ''}
+                                ${participant.room !== participant.originalRoom ? '<span class="room-change-indicator">🛏️ Zimmer</span>' : ''}
+                                ${participant.comments && participant.comments.trim() !== '' ? '<span class="comments-indicator">💬 Info</span>' : ''}
+                            </div>
+                            <div class="participant-details">
+                                Buchung: ${participant.booking} | Alter: ${participant.age} | Zimmer: ${participant.room} (${participant.building}) | Ortsgruppe: ${participant.ortsgruppe} | 
+                                ${participant.catering === 'Vegetarisch' ? 
+                                    `<span style="background: var(--jrk-green); color: var(--jrk-white); padding: 0; border-radius: 10px; font-size: 0.8rem; font-weight: 600;">🟢 ${participant.catering}</span>` :
+                                    participant.catering === 'Vegan' ?
+                                    `<span style="background: var(--jrk-blue); color: var(--jrk-white); padding: 0; border-radius: 10px; font-size: 0.8rem; font-weight: 600;">🔵 ${participant.catering}</span>` :
+                                    participant.catering
+                                }
+                                ${participant.workshops.length > 0 ? `<br>Workshops: ${participant.workshops.map(w => `${w.day}: ${w.workshop}`).join(' | ')}${participant.workshopChanges && participant.workshopChanges.length > 0 ? ' <span class="workshop-warning">⚠️</span>' : ''}` : ''}
+                                ${participant.room !== participant.originalRoom ? `<br><strong>⚠️ Zimmer gewechselt von ${participant.originalRoom}</strong>` : ''}
+                            </div>
+                        </div>
+                        <div class="participant-meta">
+                            <div class="status-badge ${participant.status}">
+                                ${statusText[participant.status]}
+                            </div>
+                            ${participant.checkInTime ? `<div class="checkin-time">Check-in: ${participant.checkInTime}</div>` : ''}
+                            ${participant.checkOutTime ? `<div class="checkin-time">Check-out: ${participant.checkOutTime}</div>` : ''}
+                            ${participant.ausflugsTime ? `<div class="checkin-time">Ausflug: ${participant.ausflugsTime}</div>` : ''}
+                            ${participant.krankTime ? `<div class="checkin-time">Krank: ${participant.krankTime}</div>` : ''}
+                        </div>
+                        <div class="participant-actions">
+                            ${!isViewOnlyUser() && hasPermission('setStatus') ? `
+                                <button class="${checkinBtnClass}" onclick="app.setStatus(${participant.id}, 'present')">Anwesend</button>
+                                <button class="checkout-btn" onclick="app.setStatus(${participant.id}, 'absent')">Abwesend</button>
+                                <button class="ausflug-btn" onclick="app.setStatus(${participant.id}, 'ausflug')">Ausflug</button>
+                                <button class="krank-btn" onclick="app.setStatus(${participant.id}, 'krank')">Krank</button>
+                            ` : ''}
+                            ${!isViewOnlyUser() && hasPermission('editRoom') ? `<button class="edit-room-btn" onclick="app.editRoom(${participant.id})">Zimmer</button>` : ''}
+                            ${!isViewOnlyUser() && hasPermission('editWorkshop') ? `<button class="edit-workshop-btn" onclick="app.editWorkshop(${participant.id})">Workshop</button>` : ''}
+                        </div>
+                    </div>
+                `;
+                }).join('');
+            }
+
+            async setStatus(participantId, newStatus) {
+                if (!hasPermission('setStatus')) {
+                    alert('Sie haben keine Berechtigung, Status zu ändern.');
+                    return;
+                }
+
+                const participant = this.participants.find(p => p.id === participantId);
+                if (!participant) return;
+                
+                // FIXED: Update participant status immediately for responsive UI
+                const timestamp = new Date().toLocaleString('de-DE');
+                participant.status = newStatus;
+                
+                // Clear all timestamps first
+                participant.checkInTime = null;
+                participant.checkOutTime = null;
+                participant.ausflugsTime = null;
+                participant.krankTime = null;
+                
+                // Set appropriate timestamp
+                switch(newStatus) {
+                    case 'present':
+                        participant.checkInTime = timestamp;
+                        break;
+                    case 'absent':
+                        participant.checkOutTime = timestamp;
+                        break;
+                    case 'ausflug':
+                        participant.ausflugsTime = timestamp;
+                        break;
+                    case 'krank':
+                        participant.krankTime = timestamp;
+                        break;
+                }
+                
+                // Update UI immediately
+                this.applyFilters();
+                this.updateDashboard();
+                
+                // Try to sync with cloud in background
+                try {
+                    const response = await fetch(`${API_BASE_URL}/checkin`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+    id: participantId,
+    status: newStatus,
+    user: currentUser
+})
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Update failed');
+                    }
+                } catch (error) {
+                    console.error('Error syncing status to cloud:', error);
+                    // Status was already updated locally, so we don't revert
+                    // Just log the error for debugging
+                }
+            }
+
+            editRoom(participantId) {
+                if (!hasPermission('editRoom')) {
+                    alert('Sie haben keine Berechtigung, Zimmer zu ändern.');
+                    return;
+                }
+                
+                const participant = this.participants.find(p => p.id === participantId);
+                if (!participant) return;
+                
+                const newRoom = prompt(`Neues Zimmer für ${participant.name}:`, participant.room);
+                if (newRoom !== null && newRoom.trim() !== participant.room) {
+                    const oldRoom = participant.room;
+                    const oldBuilding = participant.building;
+                    
+                    participant.room = newRoom.trim();
+                    participant.building = this.extractBuildingFromRoom(participant.room);
+                    
+                    if (!participant.roomChanges) participant.roomChanges = [];
+                    participant.roomChanges.push({
+                        from: oldRoom,
+                        to: participant.room,
+                        fromBuilding: oldBuilding,
+                        toBuilding: participant.building,
+                        timestamp: new Date().toLocaleString('de-DE'),
+                        user: currentUser
+                    });
+                    
+                    this.extractBuildings();
+                    this.setupBuildingFilters();
+                    this.setupOrtsgruppeFilters();
+                    this.applyFilters();
+                    this.saveToCloud();
+                    
+                    alert(`Zimmer von ${participant.name} wurde von ${oldRoom} (${oldBuilding}) zu ${participant.room} (${participant.building}) geändert.`);
+                }
+            }
+
+            // Edit workshop method
+            editWorkshop(participantId) {
+                if (!hasPermission('editWorkshop')) {
+                    alert('Sie haben keine Berechtigung, Workshops zu ändern.');
+                    return;
+                }
+                
+                const participant = this.participants.find(p => p.id === participantId);
+                if (!participant) return;
+                
+                // Show workshop edit modal
+                this.showWorkshopEditModal(participant);
+            }
+
+            showWorkshopEditModal(participant) {
+                const modalBody = document.getElementById('modalBody');
+                modalBody.innerHTML = `
+                    <div class="workshop-form-group">
+                        <h4 style="margin-bottom: 15px; color: var(--jrk-dark);">📝 Workshops bearbeiten für ${participant.name}</h4>
+                        
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block;">Samstag Vormittag:</label>
+                        <input type="text" id="workshopSamstag" class="workshop-input" 
+                               value="${participant.workshops.find(w => w.day === 'Samstag Vormittag')?.workshop || ''}"
+                               placeholder="Workshop Samstag Vormittag">
+                        
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block;">Sonntag Vormittag:</label>
+                        <input type="text" id="workshopSonntag" class="workshop-input" 
+                               value="${participant.workshops.find(w => w.day === 'Sonntag Vormittag')?.workshop || ''}"
+                               placeholder="Workshop Sonntag Vormittag">
+                        
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block;">Montag Vormittag:</label>
+                        <input type="text" id="workshopMontagVM" class="workshop-input" 
+                               value="${participant.workshops.find(w => w.day === 'Montag Vormittag')?.workshop || ''}"
+                               placeholder="Workshop Montag Vormittag">
+                        
+                        <label style="font-weight: 600; margin-bottom: 5px; display: block;">Montag Nachmittag:</label>
+                        <input type="text" id="workshopMontagNM" class="workshop-input" 
+                               value="${participant.workshops.find(w => w.day === 'Montag Nachmittag')?.workshop || ''}"
+                               placeholder="Workshop Montag Nachmittag">
+                        
+                        <button class="workshop-save-btn" onclick="saveWorkshopChanges(${participant.id})">
+                            💾 Workshop-Änderungen speichern
+                        </button>
+                    </div>
+                `;
+                
+                document.getElementById('modalName').innerHTML = `
+                    ${participant.name}
+                    <span class="ortsgruppe-badge">${participant.ortsgruppe}</span>
+                `;
+                
+                document.getElementById('participantModal').style.display = 'block';
+            }
+
+            async saveWorkshopChanges(participantId, newWorkshops) {
+                const participant = this.participants.find(p => p.id === participantId);
+                if (!participant) return;
+
+                // Store original workshops for comparison
+                const originalWorkshops = [...participant.workshops];
+                
+                // Update workshops immediately
+                participant.workshops = newWorkshops;
+                
+                // Update workshop string for display
+                participant.workshop = newWorkshops
+                    .filter(w => w.workshop && w.workshop.trim() !== '')
+                    .map(w => `${w.day}: ${w.workshop}`)
+                    .join(', ');
+
+                // Track the change
+                if (!participant.workshopChanges) participant.workshopChanges = [];
+                participant.workshopChanges.push({
+                    from: originalWorkshops,
+                    to: newWorkshops,
+                    timestamp: new Date().toLocaleString('de-DE'),
+                    user: currentUser
+                });
+
+                // Update UI immediately
+                this.applyFilters();
+                
+                // Show success message immediately
+                alert('Workshop-Änderungen gespeichert.');
+                
+                // Close modal
+                this.closeModal();
+
+                // Try to save to cloud in background
+                this.saveToCloud().catch(error => {
+                    console.warn('Cloud sync failed for workshop change, but change was applied locally:', error);
+                });
+            }
+
+            // Save medical info
+            async saveMedicalInfo(participantId, hasMedicalInfo, medicalInfo) {
+                const participant = this.participants.find(p => p.id === participantId);
+                if (!participant) return;
+
+                participant.hasMedicalInfo = hasMedicalInfo;
+                participant.medicalInfo = medicalInfo;
+
+                try {
+                    await this.saveToCloud();
+                    this.applyFilters(); // Refresh display
+                    alert('Medizinische Informationen gespeichert.');
+                } catch (error) {
+                    console.error('Error saving medical info:', error);
+                    alert('Fehler beim Speichern der medizinischen Informationen.');
+                }
+            }
+
+            // Save comments
+            async saveComments(participantId, comments) {
+                const participant = this.participants.find(p => p.id === participantId);
+                if (!participant) return;
+
+                participant.comments = comments;
+
+                try {
+                    await this.saveToCloud();
+                    this.applyFilters(); // Refresh display
+                    alert('Kommentare gespeichert.');
+                } catch (error) {
+                    console.error('Error saving comments:', error);
+                    alert('Fehler beim Speichern der Kommentare.');
+                }
+            }
+
+            showParticipantDetails(participantId) {
+                const participant = this.participants.find(p => p.id === participantId);
+                if (!participant) return;
+
+                document.getElementById('modalName').innerHTML = `
+                    ${participant.name}
+                    <span class="ortsgruppe-badge">${participant.ortsgruppe}</span>
+                `;
+                
+                const modalBody = document.getElementById('modalBody');
+                modalBody.innerHTML = `
+                    <div class="modal-detail-group">
+                        <div class="modal-detail-label">Buchungsnummer</div>
+                        <div class="modal-detail-value">${participant.booking}</div>
+                    </div>
+                    <div class="modal-detail-group">
+                        <div class="modal-detail-label">Alter</div>
+                        <div class="modal-detail-value">${participant.age}</div>
+                    </div>
+                    <div class="modal-detail-group">
+                        <div class="modal-detail-label">Zimmer & Gebäude</div>
+                        <div class="modal-detail-value">${participant.room} (${participant.building})</div>
+                    </div>
+                    <div class="modal-detail-group">
+                        <div class="modal-detail-label">Verpflegung</div>
+                        <div class="modal-detail-value">
+                            ${participant.catering === 'Vegetarisch' ? 
+                                `<span style="background: var(--jrk-green); color: var(--jrk-white); padding: 0; border-radius: 15px; font-weight: 600;">🟢 ${participant.catering} (Bändchen)</span>` :
+                                participant.catering === 'Vegan' ?
+                                `<span style="background: var(--jrk-blue); color: var(--jrk-white); padding: 0; border-radius: 15px; font-weight: 600;">🔵 ${participant.catering} (Bändchen)</span>` :
+                                participant.catering
+                            }
+                        </div>
+                    </div>
+                    <div class="modal-detail-group">
+                        <div class="modal-detail-label">Status</div>
+                        <div class="modal-detail-value">
+                            <div class="status-with-time">
+                                <span>${participant.status === 'present' ? 'Anwesend' : participant.status === 'ausflug' ? 'Ausflug' : participant.status === 'krank' ? 'Krank' : 'Abwesend'}</span>
+                                ${participant.checkInTime ? `<span class="checkin-time">Check-in: ${participant.checkInTime}</span>` : ''}
+                                ${participant.checkOutTime ? `<span class="checkin-time">Check-out: ${participant.checkOutTime}</span>` : ''}
+                                ${participant.ausflugsTime ? `<span class="checkin-time">Ausflug: ${participant.ausflugsTime}</span>` : ''}
+                                ${participant.krankTime ? `<span class="checkin-time">Krank: ${participant.krankTime}</span>` : ''}
+                                ${!isViewOnlyUser() && hasPermission('setStatus') && participant.status !== 'present' ? `
+                                    <button class="checkin-btn" onclick="app.setStatus(${participant.id}, 'present')" style="margin-left: 15px; padding: 0; font-size: 0.9rem;">
+                                        ✅ Jetzt einchecken
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    ${!isViewOnlyUser() && hasPermission('editMedical') ? `
+                        <div class="medical-form-group ${!participant.hasMedicalInfo ? 'inactive' : ''}" id="medicalFormGroup_${participant.id}">
+                            <div class="medical-checkbox-group">
+                                <input type="checkbox" id="medicalCheckbox_${participant.id}" class="medical-checkbox" 
+                                       ${participant.hasMedicalInfo ? 'checked' : ''} 
+                                       onchange="toggleMedicalInfo(${participant.id})">
+                                <label for="medicalCheckbox_${participant.id}" class="medical-checkbox-label ${!participant.hasMedicalInfo ? 'inactive' : ''}">
+                                    🏥 Hat medizinische Infos/Medikamente
+                                </label>
+                            </div>
+                            <textarea id="medicalTextarea_${participant.id}" class="medical-textarea ${participant.hasMedicalInfo ? 'active' : ''}" 
+                                      placeholder="Medikamente, Allergien, besondere Hinweise...">${participant.medicalInfo}</textarea>
+                            <button class="medical-save-btn ${participant.hasMedicalInfo ? 'active' : ''}" onclick="saveMedicalInfo(${participant.id})">
+                                💾 Medizinische Infos speichern
+                            </button>
+                        </div>
+                    ` : (participant.hasMedicalInfo ? `
+                        <div class="modal-detail-group">
+                            <div class="modal-detail-label">🏥 Medizinische Informationen</div>
+                            <div class="modal-detail-value">${participant.medicalInfo || 'Medizinische Infos vorhanden'}</div>
+                        </div>
+                    ` : '')}
+                    ${!isViewOnlyUser() && hasPermission('editMedical') ? `
+                        <div class="comments-form-group ${!participant.comments || participant.comments.trim() === '' ? 'inactive' : ''}" id="commentsFormGroup_${participant.id}">
+                            <div class="comments-checkbox-group">
+                                <input type="checkbox" id="commentsCheckbox_${participant.id}" class="comments-checkbox" 
+                                       ${participant.comments && participant.comments.trim() !== '' ? 'checked' : ''} 
+                                       onchange="toggleComments(${participant.id})">
+                                <label for="commentsCheckbox_${participant.id}" class="comments-checkbox-label ${!participant.comments || participant.comments.trim() === '' ? 'inactive' : ''}">
+                                    💬 Hat sonstige Kommentare/Hinweise
+                                </label>
+                            </div>
+                            <textarea id="commentsTextarea_${participant.id}" class="comments-textarea ${participant.comments && participant.comments.trim() !== '' ? 'active' : ''}" 
+                                      placeholder="Sonstige Hinweise, Notizen, Kommentare...">${participant.comments || ''}</textarea>
+                            <button class="comments-save-btn ${participant.comments && participant.comments.trim() !== '' ? 'active' : ''}" onclick="saveComments(${participant.id})">
+                                💾 Kommentare speichern
+                            </button>
+                        </div>
+                    ` : ''}
+                    ${participant.comments && participant.comments.trim() !== '' ? `
+                        <div class="modal-detail-group">
+                            <div class="modal-detail-label">💬 Kommentare</div>
+                            <div class="modal-detail-value">${participant.comments}</div>
+                        </div>
+                    ` : ''}
+                    ${participant.workshops && participant.workshops.length > 0 ? `
+                        <div class="modal-detail-group">
+                            <div class="modal-detail-label">Workshops ${participant.workshopChanges && participant.workshopChanges.length > 0 ? '<span class="workshop-warning">⚠️</span>' : ''}</div>
+                            <div class="modal-detail-value">
+                                <ul class="workshop-list">
+                                    ${participant.workshops.map(workshop => 
+                                        `<li class="workshop-item">${workshop.day}: ${workshop.workshop}</li>`
+                                    ).join('')}
+                                </ul>
+                                ${!isViewOnlyUser() && hasPermission('editWorkshop') ? `
+                                    <button class="workshop-save-btn" onclick="app.editWorkshop(${participant.id})" style="margin-top: 10px;">
+                                        📝 Workshops bearbeiten
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
+                    ${participant.roomChanges && participant.roomChanges.length > 0 ? `
+                        <div class="modal-detail-group">
+                            <div class="modal-detail-label">Zimmerwechsel</div>
+                            <div class="modal-detail-value">
+                                <ul class="workshop-list">
+                                    ${participant.roomChanges.map(change => 
+                                        `<li class="workshop-item">${change.from} → ${change.to} (${change.timestamp} von ${change.user})</li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+
+                document.getElementById('participantModal').style.display = 'block';
+            }
+
+            closeModal() {
+                document.getElementById('participantModal').style.display = 'none';
+            }
+
+            updateDashboard() {
+                const total = this.participants.length;
+                const present = this.participants.filter(p => p.status === 'present').length;
+                const absent = this.participants.filter(p => p.status === 'absent').length;
+                const ausflug = this.participants.filter(p => p.status === 'ausflug').length;
+                const krank = this.participants.filter(p => p.status === 'krank').length;
+                const notChecked = absent;
+
+                const cateringCounts = {
+                    'Vollkost': 0,
+                    'Vegetarisch': 0,
+                    'Vegan': 0
+                };
+
+                this.participants.forEach(participant => {
+                    if (cateringCounts.hasOwnProperty(participant.catering)) {
+                        cateringCounts[participant.catering]++;
+                    }
+                });
+
+                document.getElementById('totalCount').textContent = total;
+                document.getElementById('presentCount').textContent = present;
+                
+                document.getElementById('absentCount').textContent = absent + ausflug + krank;
+                document.getElementById('ausflugsDetailCount').textContent = ausflug;
+                document.getElementById('krankDetailCount').textContent = krank;
+                document.getElementById('notCheckedCount').textContent = notChecked;
+                
+                document.getElementById('vollkostCount').textContent = cateringCounts['Vollkost'];
+                document.getElementById('vegetarischCount').textContent = cateringCounts['Vegetarisch'];
+                document.getElementById('veganCount').textContent = cateringCounts['Vegan'];
+            }
+
+            showMainContent() {
+                document.getElementById('mainContent').style.display = 'block';
+                this.updateUIForUserPermissions();
+            }
+
+            updateUIForUserPermissions() {
+                // Hide export button for view-only users
+                const exportBtn = document.getElementById('exportBtn');
+                if (exportBtn) {
+                    exportBtn.style.display = hasPermission('export') ? 'block' : 'none';
+                }
+            }
+
+            exportFilteredData() {
+                if (!hasPermission('export')) {
+                    alert('Sie haben keine Berechtigung zum Exportieren von Daten.');
+                    return;
+                }
+
+                if (this.filteredParticipants.length === 0) {
+                    alert('Keine Daten zum Exportieren vorhanden.');
+                    return;
+                }
+
+                try {
+                    const exportData = [
+                        ['Name', 'Buchungsnummer', 'Alter', 'Zimmernummer', 'Gebäude', 'Ortsgruppe', 'Verpflegung', 'Workshop', 'Status', 'Check-in Zeit', 'Check-out Zeit', 'Medizinische Infos', 'Workshop-Änderungen', 'Kommentare']
+                    ];
+
+                    this.filteredParticipants.forEach(participant => {
+                        exportData.push([
+                            participant.name,
+                            participant.booking,
+                            participant.age,
+                            participant.room,
+                            participant.building,
+                            participant.ortsgruppe,
+                            participant.catering,
+                            participant.workshop,
+                            participant.status === 'present' ? 'Anwesend' : 
+                            participant.status === 'ausflug' ? 'Ausflug' :
+                            participant.status === 'krank' ? 'Krank' : 'Abwesend',
+                            participant.checkInTime || '',
+                            participant.checkOutTime || '',
+                            participant.hasMedicalInfo ? (participant.medicalInfo || 'Ja') : 'Nein',
+                            participant.workshopChanges && participant.workshopChanges.length > 0 ? 'Ja' : 'Nein',
+                            participant.comments || ''
+                        ]);
+                    });
+
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.aoa_to_sheet(exportData);
+                    XLSX.utils.book_append_sheet(wb, ws, 'Teilnehmer');
+
+                    const now = new Date();
+                    const dateStr = now.toISOString().split('T')[0];
+                    const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+                    const filename = `JRK_Checkin_Export_${dateStr}_${timeStr}.xlsx`;
+
+                    XLSX.writeFile(wb, filename);
+                    alert(`Export erfolgreich! ${this.filteredParticipants.length} Teilnehmer exportiert.`);
+                } catch (error) {
+                    console.error('Fehler beim Exportieren:', error);
+                    alert('Fehler beim Exportieren der Daten. Bitte versuchen Sie es erneut.');
+                }
+            }
+
+            destroy() {
+                if (this.syncInterval) {
+                    clearInterval(this.syncInterval);
+                }
+            }
+        }
+
+        // Global functions for medical info
+        function toggleMedicalInfo(participantId) {
+            const checkbox = document.getElementById(`medicalCheckbox_${participantId}`);
+            const textarea = document.getElementById(`medicalTextarea_${participantId}`);
+            const saveBtn = document.getElementById(`medicalFormGroup_${participantId}`).querySelector('.medical-save-btn');
+            const formGroup = document.getElementById(`medicalFormGroup_${participantId}`);
+            const label = formGroup.querySelector('.medical-checkbox-label');
+            
+            if (checkbox.checked) {
+                // Show medical form
+                textarea.classList.add('active');
+                saveBtn.classList.add('active');
+                formGroup.classList.remove('inactive');
+                label.classList.remove('inactive');
+                textarea.focus();
+            } else {
+                // Hide medical form
+                textarea.classList.remove('active');
+                saveBtn.classList.remove('active');
+                formGroup.classList.add('inactive');
+                label.classList.add('inactive');
+                textarea.value = '';
+            }
+        }
+
+        function saveMedicalInfo(participantId) {
+            const checkbox = document.getElementById(`medicalCheckbox_${participantId}`);
+            const textarea = document.getElementById(`medicalTextarea_${participantId}`);
+            
+            const hasMedicalInfo = checkbox.checked;
+            const medicalInfo = hasMedicalInfo ? textarea.value.trim() : '';
+            
+            if (hasMedicalInfo && !medicalInfo) {
+                alert('Bitte geben Sie medizinische Informationen ein oder entfernen Sie den Haken.');
+                return;
+            }
+            
+            app.saveMedicalInfo(participantId, hasMedicalInfo, medicalInfo);
+        }
+
+        // Global functions for comments
+        function toggleComments(participantId) {
+            const checkbox = document.getElementById(`commentsCheckbox_${participantId}`);
+            const textarea = document.getElementById(`commentsTextarea_${participantId}`);
+            const saveBtn = document.getElementById(`commentsFormGroup_${participantId}`).querySelector('.comments-save-btn');
+            const formGroup = document.getElementById(`commentsFormGroup_${participantId}`);
+            const label = formGroup.querySelector('.comments-checkbox-label');
+            
+            if (checkbox.checked) {
+                // Show comments form
+                textarea.classList.add('active');
+                saveBtn.classList.add('active');
+                formGroup.classList.remove('inactive');
+                label.classList.remove('inactive');
+                textarea.focus();
+            } else {
+                // Hide comments form
+                textarea.classList.remove('active');
+                saveBtn.classList.remove('active');
+                formGroup.classList.add('inactive');
+                label.classList.add('inactive');
+                textarea.value = '';
+            }
+        }
+
+        function saveComments(participantId) {
+            const checkbox = document.getElementById(`commentsCheckbox_${participantId}`);
+            const textarea = document.getElementById(`commentsTextarea_${participantId}`);
+            
+            const hasComments = checkbox.checked;
+            const comments = hasComments ? textarea.value.trim() : '';
+            
+            if (hasComments && !comments) {
+                alert('Bitte geben Sie Kommentare ein oder entfernen Sie den Haken.');
+                return;
+            }
+            
+            app.saveComments(participantId, comments);
+        }
+
+        // Global function for workshop changes
+        function saveWorkshopChanges(participantId) {
+            const samstag = document.getElementById('workshopSamstag').value.trim();
+            const sonntag = document.getElementById('workshopSonntag').value.trim();
+            const montagVM = document.getElementById('workshopMontagVM').value.trim();
+            const montagNM = document.getElementById('workshopMontagNM').value.trim();
+            
+            const newWorkshops = [];
+            
+            if (samstag) {
+                newWorkshops.push({
+                    day: 'Samstag Vormittag',
+                    workshop: samstag
+                });
+            }
+            
+            if (sonntag) {
+                newWorkshops.push({
+                    day: 'Sonntag Vormittag',
+                    workshop: sonntag
+                });
+            }
+            
+            if (montagVM) {
+                newWorkshops.push({
+                    day: 'Montag Vormittag',
+                    workshop: montagVM
+                });
+            }
+            
+            if (montagNM) {
+                newWorkshops.push({
+                    day: 'Montag Nachmittag',
+                    workshop: montagNM
+                });
+            }
+            
+            app.saveWorkshopChanges(participantId, newWorkshops);
+        }
+
+        // Authentication functions
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            if (validUsers[username] && validUsers[username] === password) {
+                currentUser = username;
+                
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                
+                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('currentUser').textContent = username;
+                
+                setTimeout(() => {
+                    if (hasPermission('upload')) {
+                        document.getElementById('adminSection').style.display = 'block';
+                    } else {
+                        document.getElementById('adminSection').style.display = 'none';
+                    }
+                }, 100);
+                
+                window.app = new RealCloudCheckInApp();
+                
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('loginError').style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function logout() {
+            if (window.app) {
+                window.app.destroy();
+                window.app = null;
+            }
+            
+            currentUser = null;
+            
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('adminSection').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'none';
+            
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+    </script>
+</body>
+</html>
+
