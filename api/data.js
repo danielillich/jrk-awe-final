@@ -1,4 +1,4 @@
-let participants = [];
+const storage = require('./storage');
 
 module.exports = (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,15 +10,18 @@ module.exports = (req, res) => {
   }
 
   if (req.method === 'GET') {
+    const participants = storage.get();
+    console.log('GET /api/data - returning:', participants.length, 'participants');
     return res.status(200).json(participants);
   }
 
   if (req.method === 'POST') {
     const { participants: newParticipants } = req.body;
     if (newParticipants) {
-      participants = newParticipants;
+      storage.set(newParticipants);
+      console.log('POST /api/data - stored:', newParticipants.length, 'participants');
     }
-    return res.status(200).json({ success: true, count: participants.length });
+    return res.status(200).json({ success: true, count: storage.get().length });
   }
 
   return res.status(405).json({ message: 'Method not allowed' });
